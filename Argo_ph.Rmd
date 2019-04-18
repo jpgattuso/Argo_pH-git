@@ -20,6 +20,10 @@ library(ncdf4)
 library(curl)
 library(RColorBrewer)
 library(scales)
+
+#define who is the user and define path
+if (Sys.getenv("LOGNAME") == "gattuso") path = "../../pCloud\ Sync/Documents/experiments/exp174_Argo_pH/"
+if (Sys.getenv("LOGNAME") == "samir") path = "../../pCloud\ Sync/exp174_Argo_pH/"
 ```
 
 #Introduction
@@ -47,18 +51,18 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 
 ```{r Argo data, echo=FALSE, message=FALSE, out.width='100%'}
 #MOOSE 113 and 114
-if (file.exists("./../data/lovapm016a.RData") == TRUE) {
-  load("./../data/lovapm016a.RData")
+if (file.exists(paste0(path, "./data/lovapm016a.RData")) == TRUE) {
+  load(paste0(path, "./data/lovapm016a.RData"))
   lovapm016a <- as_tibble(lovapm016a)
 }
 files <- curl("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016a/liste_all", open="r")
 files <- readLines(files)
 for (i in 1:length(files)){
   loc_file_name <-  str_extract(files[[i]], "out(.+)nc")
-  loc_file_path <-  paste0("./../data/argo_archive/", loc_file_name)
+  loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
 rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016a/", loc_file_name)
 
-if (file.exists(paste0("./../data/argo_archive/", loc_file_name)) == FALSE){
+if (file.exists(paste0(path, "./data/argo_archive/", loc_file_name)) == FALSE){
   print(loc_file_name)
   curl_download(url = rem_file_name, destfile = loc_file_path)
   filenc <- nc_open(loc_file_path, readunlim=FALSE, write=FALSE)
@@ -73,7 +77,7 @@ if (file.exists(paste0("./../data/argo_archive/", loc_file_name)) == FALSE){
   aProf <- ncvar_get(filenc,"PRES")
   apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
   adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
-if (file.exists("./../data/lovapm016a.RData") == TRUE) {
+if (file.exists(paste0(path, "./data/lovapm016a.RData")) == TRUE) {
   lovapm016a <- bind_rows(lovapm016a, adata)
 } else {
   lovapm016a <- adata
@@ -84,18 +88,18 @@ lovapm016a <- lovapm016a %>%
   dplyr::distinct(lovapm016a) %>% # remove duplicates if any
   dplyr::arrange(adatetime) # re-order
 
-save(lovapm016a, file = "./../data/lovapm016a.RData")
+save(lovapm016a, file = paste0(path, "./data/lovapm016a.RData"))
 
 #MOOSE 120
-if (file.exists("./../data/lovapm016b.RData") == TRUE) {
-  load("./../data/lovapm016b.RData")
+if (file.exists(paste0(path, "./data/lovapm016b.RData")) == TRUE) {
+  load(paste0(path, "./data/lovapm016b.RData"))
   lovapm016b <- as_tibble(lovapm016b)
 }
 files <- curl("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016b/liste_all", open="r")
 files <- readLines(files)
 for (i in 1:10){
   loc_file_name <-  str_extract(files[[i]], "out(.+)nc")
-  loc_file_path <-  paste0("./../data/argo_archive/", loc_file_name)
+  loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
 rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016b/", loc_file_name)
 
 if (file.exists(paste0("./../data/argo_archive/", loc_file_name)) == FALSE){
@@ -113,7 +117,7 @@ if (file.exists(paste0("./../data/argo_archive/", loc_file_name)) == FALSE){
   aProf <- ncvar_get(filenc,"PRES")
   apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
   adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
-if (file.exists("./../data/lovapm016b.RData") == TRUE) {
+if (file.exists(paste0(path, "./data/lovapm016b.RData")) == TRUE) {
   lovapm016b <- bind_rows(lovapm016b, adata)
 } else {
   lovapm016b <- adata
@@ -124,11 +128,11 @@ lovapm016b <- lovapm016b %>%
   dplyr::distinct(lovapm016b) %>% # remove duplicates if any
   dplyr::arrange(adatetime) # re-order
 
-save(lovapm016b, file = "./../data/lovapm016b.RData")
+save(lovapm016b, file = paste0(path, "./data/lovapm016b.RData"))
 ```
 
 ```{r read lab data, echo=FALSE, message=FALSE, out.width='100%'}
-d <- read_delim("../data/Dyfamed.csv", col_names=TRUE, delim = ";")
+d <- read_delim(paste0(path, "./data/Dyfamed.csv"), col_names=TRUE, delim = ";")
 d$date <- dmy(d$date)  
 d$date_analysis <- dmy(d$date_analysis) 
 d$Niskin <- as.numeric(d$Niskin) 
