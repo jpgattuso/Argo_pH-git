@@ -138,6 +138,23 @@ d$date <- dmy(d$date)
 d$date_analysis <- dmy(d$date_analysis) 
 d$Niskin <- as.numeric(d$Niskin) 
 
+# # TA interpolation
+# m120 <- d%>%
+#   dplyr::filter(Cruise == "Moose120")
+# atinterp <-approx(m120$Niskin, m120$ta, xout=m120$Niskin, method="linear", rule=2)
+# names(atinterp) <- c("date", "ta")
+# atinterp <- as.data.frame(atinterp)
+# m120$ta <- atinterp$ta
+# 
+# m130 <- d%>%
+#   dplyr::filter(Cruise == "Moose130")
+# atinterp <-approx(m130$Niskin, m130$ta, xout=m130$Niskin, method="linear", rule=2)
+# names(atinterp) <- c("date", "ta")
+# atinterp <- as.data.frame(atinterp)
+# m130$ta <- atinterp$ta
+# 
+# dd <- d%>%
+#   dplyr::mutate(ta = )
 d <- d %>%
   dplyr::mutate(pHspec_Tinsitu = pHinsi(pH=d$pHlab,ALK=d$ta*1e-6, Tinsi=d$Tinsitu, Tlab=d$Tlab, Pinsi= d$Prof/10, S=d$Sal,Pt=0,Sit=0))
 
