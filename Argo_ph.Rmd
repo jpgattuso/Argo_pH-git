@@ -32,7 +32,7 @@ This document presents results of pH measurements obtained during MOOSE cruises:
 - 113 on 8 November 2017. Samples have been collected at the Dyfamed station by Emilie Diamond and Melek Golbol.
 - 114 on 4 December 2017. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
 - 120 on 30 June 2018. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
-- 130 on 2019-04-16. Samples have been collected at XXX by Eduardo Soto and Melek Golbol.
+- 130 on 2019-04-16. Samples have been collected at the Dyfamed by Eduardo Soto and Melek Golbol.
 
 
 It also shows data obtained with Argo float lovapm016a.
@@ -43,6 +43,7 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 - Total alkalinity was measured on 24 November 2017 for the sample collected at 1000 m during cruise 113: TA = 2581.77 uEq/kg (n=2, SD=0.68 uEq/kg). Theoretical CRM value is 2213.59 uEq/kg (Batch 159) and measured CRM was 2213.19 uEq/kg.
 - Total alkalinity was measured on 15 March 2018 for the sample at 1000 m during cruise 114: TA = 2592.73 uEq/kg (n=3, SD=1.41 uEq/kg). Theoretical CRM value is 2217.4 uEq/kg (Batch 171) and measured CRM was 2211.5 uEq/kg.
 - Total alkalinity was measured on 20 July 2018 for samples at 1000 m and 2000 m during cruise 120: TA was respectively 2582.90 uEq/kg (n=2, SD=0.30 uEq/kg) and 2582.16 uEq/kg (n=2, SD=1.27 uEq/kg). Theoretical CRM value is 2226.16 uEq/kg (Batch 145) and measured CRM was 2222.67 uEq/kg (n=2, SD=0.88 uEq/kg).
+- Total alkalinity was measured on 18 April 2019 for samples at 1000 m and surface m during cruise 130: TA was respectively 2586.43 uEq/kg (n=2, SD=0.43 uEq/kg) and 2576.07 uEq/kg (n=2, SD=0.57 uEq/kg). Theoretical CRM value is 2213.59 uEq/kg (Batch 159) and measured CRM was 2216.10 uEq/kg (n=2, SD=0.10 uEq/kg).
 
 
 #Results
@@ -137,6 +138,23 @@ d$date <- dmy(d$date)
 d$date_analysis <- dmy(d$date_analysis) 
 d$Niskin <- as.numeric(d$Niskin) 
 
+# # TA interpolation
+# m120 <- d%>%
+#   dplyr::filter(Cruise == "Moose120")
+# atinterp <-approx(m120$Niskin, m120$ta, xout=m120$Niskin, method="linear", rule=2)
+# names(atinterp) <- c("date", "ta")
+# atinterp <- as.data.frame(atinterp)
+# m120$ta <- atinterp$ta
+# 
+# m130 <- d%>%
+#   dplyr::filter(Cruise == "Moose130")
+# atinterp <-approx(m130$Niskin, m130$ta, xout=m130$Niskin, method="linear", rule=2)
+# names(atinterp) <- c("date", "ta")
+# atinterp <- as.data.frame(atinterp)
+# m130$ta <- atinterp$ta
+# 
+# dd <- d%>%
+#   dplyr::mutate(ta = )
 d <- d %>%
   dplyr::mutate(pHspec_Tinsitu = pHinsi(pH=d$pHlab,ALK=d$ta*1e-6, Tinsi=d$Tinsitu, Tlab=d$Tlab, Pinsi= d$Prof/10, S=d$Sal,Pt=0,Sit=0))
 
