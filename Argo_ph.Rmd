@@ -24,9 +24,15 @@ library(scales)
 #define who is the user and define path
 if (Sys.getenv("LOGNAME") == "gattuso") path = "../../pCloud\ Sync/Documents/experiments/exp174_Argo_pH/"
 if (Sys.getenv("LOGNAME") == "samir") path = "../../pCloud\ Sync/exp174_Argo_pH/"
+
+#################### which.closest function
+which.closest <- function(x, table, ...) {
+  round(approx(x=table, y=1:length(table), xout=x, ...)$y)
+}
+
 ```
 
-#Introduction
+# Introduction
 This document presents results of pH measurements obtained during MOOSE cruises:
 
 - 113 on 8 November 2017. Samples have been collected at the Dyfamed station by Emilie Diamond and Melek Golbol.
@@ -35,7 +41,12 @@ This document presents results of pH measurements obtained during MOOSE cruises:
 - 130 on 2019-04-16. Samples have been collected at the Dyfamed by Eduardo Soto and Melek Golbol.
 
 
-It also shows data obtained with Argo float lovapm016a.
+**Floats:**
+
+- MOOSE 113 and 114: lovapm016a
+- MOOSE 120: lovapm016b
+- MOOSE 130: lovapm016c
+
 
 #Materiel and Methods
 Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stored pending analysis. pH was measured using the spectrophotometric method (Dickson et al., 2007) with purified m-cresol purple (purchased from Robert H. Byrne’s laboratory, University of South Florida for 113 and 114 cruises and obtained from Fluidion society, France for 120 cruise). pH measurements were performed at room temperature by Samir Alliouane on 9 November 2017, 26 December 2017 on the Ocean Optics spectrophotometer (cruises 113 and 114) and on 4 July 2018 on Cary60 spectrophotometer (cruise 120). pH values are on the total scale and are expressed at in situ temperature and pressure using the function pHinsi of the R package seacarb 3.2.3 (Gattuso et al., 2017). A tentative total alkalinity of 2560 uEq/kg was used. This will need to be changed to values obtained by SNAPO-CO2. 
@@ -50,18 +61,22 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 
 ##MOOSE 113 and 114
 
-```{r Argo data, echo=FALSE, message=FALSE, out.width='100%'}
-#MOOSE 113 and 114
-if (file.exists(paste0(path, "./data/lovapm016a.RData")) == TRUE) {
-  load(paste0(path, "./data/lovapm016a.RData"))
-  lovapm016a <- as_tibble(lovapm016a)
-}
-files <- curl("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016a/liste_all", open="r")
-files <- readLines(files)
-for (i in 1:length(files)){
-  loc_file_name <-  str_extract(files[[i]], "out(.+)nc")
+```{r read data, echo=FALSE, message=FALSE, out.width='100%'}
+floats <- c("lovapm016a", "lovapm016b", "lovapm016c")
+for (f in 1:length(floats)) {
+     float <- floats[f]
+     if (file.exists(paste0(path, "./data/", float, ".rds")) == TRUE) {
+       readRDS(paste0(path, "data/", float, ".rds"))
+       tmp <- get(floats[f])
+     } else {
+       if (exists("tmp") == TRUE) rm(tmp) # delete tmp of previous float
+     }
+files <- curl(paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/liste_all"), open="r")
+fil <- readLines(files)
+for (i in 1:length(fil)){
+  loc_file_name <-  str_extract(fil[[i]], "out(.+)nc")
   loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
-rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016a/", loc_file_name)
+rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/", loc_file_name)
 
 if (file.exists(paste0(path, "./data/argo_archive/", loc_file_name)) == FALSE){
   print(loc_file_name)
@@ -78,65 +93,45 @@ if (file.exists(paste0(path, "./data/argo_archive/", loc_file_name)) == FALSE){
   aProf <- ncvar_get(filenc,"PRES")
   apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
   adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
-if (file.exists(paste0(path, "./data/lovapm016a.RData")) == TRUE) {
-  lovapm016a <- bind_rows(lovapm016a, adata)
-} else {
-  lovapm016a <- adata
-  }
-}
-}
-lovapm016a <- lovapm016a %>%
-  dplyr::distinct(lovapm016a) %>% # remove duplicates if any
+  if (exists("tmp") == FALSE) {
+    tmp <- adata
+    } else {
+      tmp <- bind_rows(tmp, adata)
+    }
+  dplyr::distinct(tmp) %>% # remove duplicates if any
   dplyr::arrange(adatetime) # re-order
-
-save(lovapm016a, file = paste0(path, "./data/lovapm016a.RData"))
-
-#MOOSE 120
-if (file.exists(paste0(path, "./data/lovapm016b.RData")) == TRUE) {
-  load(paste0(path, "./data/lovapm016b.RData"))
-  lovapm016b <- as_tibble(lovapm016b)
-}
-files <- curl("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016b/liste_all", open="r")
-files <- readLines(files)
-for (i in 1:10){
-  loc_file_name <-  str_extract(files[[i]], "out(.+)nc")
-  loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
-rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/lovapm016b/", loc_file_name)
-
-if (file.exists(paste0("./../data/argo_archive/", loc_file_name)) == FALSE){
-  print(loc_file_name)
-  curl_download(url = rem_file_name, destfile = loc_file_path)
-  filenc <- nc_open(loc_file_path, readunlim=FALSE, write=FALSE)
-  # YYYYMMDDHHMISS
-  REFERENCE_DATE_TIME <- ncvar_get(filenc, "REFERENCE_DATE_TIME")
-  JULD <- ncvar_get(filenc, "JULD")
-  TIME <- ncvar_get(filenc, "TIME")
-  adatetime <- ymd_hms(as.numeric(REFERENCE_DATE_TIME)) +
-    days(as.integer(TIME)) + (TIME - as.integer(TIME)) * 24 * 60 * 60
-  aTinsitu <- ncvar_get(filenc,"TEMP")
-  aSal <- ncvar_get(filenc,"PSAL")
-  aProf <- ncvar_get(filenc,"PRES")
-  apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
-  adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
-if (file.exists(paste0(path, "./data/lovapm016b.RData")) == TRUE) {
-  lovapm016b <- bind_rows(lovapm016b, adata)
-} else {
-  lovapm016b <- adata
-  }
+  
+  assign(x = floats[f], tmp)
+saveRDS(get(floats[f]), file = paste0(path, "./data/", floats[f], ".rds"))
 }
 }
-lovapm016b <- lovapm016b %>%
-  dplyr::distinct(lovapm016b) %>% # remove duplicates if any
-  dplyr::arrange(adatetime) # re-order
-
-save(lovapm016b, file = paste0(path, "./data/lovapm016b.RData"))
+}
 ```
 
-```{r read lab data, echo=FALSE, message=FALSE, out.width='100%'}
+```{r combine floats data, echo=FALSE, message=FALSE, out.width='100%'}
+floats <- c("lovapm016a", "lovapm016b", "lovapm016c")
+dat <- NULL
+for (f in 1:length(floats)) {
+  tmp <- get(x = floats[f]) %>%
+  dplyr::mutate(float = floats[f])
+  dat <- dat %>% 
+    dplyr::bind_rows(tmp)# %>%
+    #dplyr::rename(Prof = aProf)
+  }
+```
+
+
+```{r merge lab data, echo=FALSE, message=FALSE, out.width='100%'}
+# read and organize
 d <- read_delim(paste0(path, "./data/Dyfamed.csv"), col_names=TRUE, delim = ";")
 d$date <- dmy(d$date)  
 d$date_analysis <- dmy(d$date_analysis) 
 d$Niskin <- as.numeric(d$Niskin) 
+
+# join lab and field dataframes
+dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
+
+#PROBLEME les profoneurs ne correspondent pas. Utiliser la fonction which.closest comme dans awipev-co2
 
 # # TA interpolation
 # m120 <- d%>%
@@ -200,7 +195,7 @@ data_long %>%
   theme(legend.position='top')
 ```
 
-##MOOSE 113 and 114
+## MOOSE 113 and 114
 
 ```{r fig Argo MOOSE 113 and 114, echo=FALSE, warning= FALSE, fig.width=6,fig.height=8}
 d <- lovapm016a %>%
