@@ -1,12 +1,12 @@
 ---
-title: "Dyfamed cruise before and during deployement of Argo float lovapm016a and lovapm016b"
+  title: "Dyfamed cruise before and during deployement of Argo float lovapm016a and lovapm016b"
 author: "Jean-Pierre Gattuso, Samir Alliouane and Hervé Claustre"
 date: "`r format(Sys.Date(), '%d %B, %Y')`"
 output: html_document
 ---
-
-
-```{r set-up, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+  
+  
+  ```{r set-up, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
 Sys.setlocale("LC_ALL", "en_US.UTF-8")
 rm(list = ls())
 ## theme to format the plots
@@ -34,15 +34,15 @@ which.closest <- function(x, table, ...) {
 
 # Introduction
 This document presents results of pH measurements obtained during MOOSE cruises:
-
-- 113 on 8 November 2017. Samples have been collected at the Dyfamed station by Emilie Diamond and Melek Golbol.
+  
+  - 113 on 8 November 2017. Samples have been collected at the Dyfamed station by Emilie Diamond and Melek Golbol.
 - 114 on 4 December 2017. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
 - 120 on 30 June 2018. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
 - 130 on 2019-04-16. Samples have been collected at the Dyfamed by Eduardo Soto and Melek Golbol.
 
 
 **Floats:**
-
+  
 - MOOSE 113 and 114: lovapm016a
 - MOOSE 120: lovapm016b
 - MOOSE 130: lovapm016c
@@ -64,48 +64,47 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 ```{r read data, echo=FALSE, message=FALSE, out.width='100%'}
 floats <- c("lovapm016a", "lovapm016b", "lovapm016c")
 for (f in 1:length(floats)) {
-     float <- floats[f]
-     if (file.exists(paste0(path, "./data/", float, ".rds")) == TRUE) {
-       tmp <- readRDS(paste0(path, "data/", float, ".rds"))
-       #tmp <- get(floats[f])
-     } else {
-       if (exists("tmp") == TRUE) rm(tmp) # delete tmp of previous float
-     }
-files <- curl(paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/liste_all"), open="r")
-fil <- readLines(files)
-for (i in 1:length(fil)){
-  loc_file_name <-  str_extract(fil[[i]], "out(.+)nc")
-  loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
-rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/", loc_file_name)
-
-if (file.exists(paste0(path, "./data/argo_archive/", loc_file_name)) == FALSE){
-  print(loc_file_name)
-  curl_download(url = rem_file_name, destfile = loc_file_path)
-  filenc <- nc_open(loc_file_path, readunlim=FALSE, write=FALSE)
-  # YYYYMMDDHHMISS
-  REFERENCE_DATE_TIME <- ncvar_get(filenc, "REFERENCE_DATE_TIME")
-  JULD <- ncvar_get(filenc, "JULD")
-  TIME <- ncvar_get(filenc, "TIME")
-  adatetime <- ymd_hms(as.numeric(REFERENCE_DATE_TIME)) +
-    days(as.integer(TIME)) + (TIME - as.integer(TIME)) * 24 * 60 * 60
-  aTinsitu <- ncvar_get(filenc,"TEMP")
-  aSal <- ncvar_get(filenc,"PSAL")
-  aProf <- ncvar_get(filenc,"PRES")
-  apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
-  adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
-  if (exists("tmp") == FALSE) {
-    tmp <- adata
-    } else {
-      tmp <- bind_rows(tmp, adata)
+  float <- floats[f]
+  if (file.exists(paste0(path, "./data/", float, ".rds")) == TRUE) {
+    readRDS(paste0(path, "data/", float, ".rds"))
+    tmp <- get(floats[f])
+  } else {
+    if (exists("tmp") == TRUE) rm(tmp) # delete tmp of previous float
+  }
+  files <- curl(paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/liste_all"), open="r")
+  fil <- readLines(files)
+  for (i in 1:length(fil)){
+    loc_file_name <-  str_extract(fil[[i]], "out(.+)nc")
+    loc_file_path <-  paste0(path, "./data/argo_archive/", loc_file_name)
+    rem_file_name <- paste0("http://poteau:poteau@www.oao.obs-vlfr.fr/BD_FLOAT/NETCDF/", float, "/", loc_file_name)
+    
+    if (file.exists(paste0(path, "./data/argo_archive/", loc_file_name)) == FALSE){
+      print(loc_file_name)
+      curl_download(url = rem_file_name, destfile = loc_file_path)
+      filenc <- nc_open(loc_file_path, readunlim=FALSE, write=FALSE)
+      # YYYYMMDDHHMISS
+      REFERENCE_DATE_TIME <- ncvar_get(filenc, "REFERENCE_DATE_TIME")
+      JULD <- ncvar_get(filenc, "JULD")
+      TIME <- ncvar_get(filenc, "TIME")
+      adatetime <- ymd_hms(as.numeric(REFERENCE_DATE_TIME)) +
+        days(as.integer(TIME)) + (TIME - as.integer(TIME)) * 24 * 60 * 60
+      aTinsitu <- ncvar_get(filenc,"TEMP")
+      aSal <- ncvar_get(filenc,"PSAL")
+      aProf <- ncvar_get(filenc,"PRES")
+      apH <- ncvar_get(filenc, "PH_IN_SITU_TOTAL")
+      adata <- tibble(adatetime, aTinsitu, aSal, aProf, apH)
+      if (exists("tmp") == FALSE) {
+        tmp <- adata
+      } else {
+        tmp <- bind_rows(tmp, adata)
+      }
+      dplyr::distinct(tmp) %>% # remove duplicates if any
+        dplyr::arrange(adatetime) # re-order
+      
+      assign(x = floats[f], tmp)
+      saveRDS(get(floats[f]), file = paste0(path, "./data/", floats[f], ".rds"))
     }
-  dplyr::distinct(tmp) %>% # remove duplicates if any
-  dplyr::arrange(adatetime) # re-order
-  
-
-}
-}
-  assign(x = floats[f], tmp)
-saveRDS(get(floats[f]), file = paste0(path, "./data/", floats[f], ".rds"))
+  }
 }
 ```
 
@@ -114,11 +113,11 @@ floats <- c("lovapm016a", "lovapm016b", "lovapm016c")
 dat <- NULL
 for (f in 1:length(floats)) {
   tmp <- get(x = floats[f]) %>%
-  dplyr::mutate(float = floats[f])
+    dplyr::mutate(float = floats[f])
   dat <- dat %>% 
     dplyr::bind_rows(tmp)# %>%
-    #dplyr::rename(Prof = aProf)
-  }
+  #dplyr::rename(Prof = aProf)
+}
 ```
 
 
@@ -132,7 +131,7 @@ d$Niskin <- as.numeric(d$Niskin)
 # join lab and field dataframes
 dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
 
-#PROBLEME les profondeurs ne correspondent pas. Utiliser la fonction which.closest comme dans awipev-co2
+#PROBLEME les profoneurs ne correspondent pas. Utiliser la fonction which.closest comme dans awipev-co2
 
 # # TA interpolation
 # m120 <- d%>%
@@ -165,7 +164,7 @@ data <- d %>%
                    pHlab = mean(pHlab, na.rm = T),
                    pH_Tinsitu = mean(pHspec_Tinsitu, na.rm = T), 
                    sd = sd(pHspec_Tinsitu, na.rm = T)
-                  )
+  )
 data <- data %>%
   dplyr::arrange(Cruise, Depth)
 
@@ -200,24 +199,24 @@ data_long %>%
 
 ```{r fig Argo MOOSE 113 and 114, echo=FALSE, warning= FALSE, fig.width=6,fig.height=8}
 d <- lovapm016a %>%
-    dplyr::mutate(adate = as_date(adatetime)) %>%
+  dplyr::mutate(adate = as_date(adatetime)) %>%
   dplyr::filter(!is.na(apH) & apH < 9 & adate > "2017-12-03")
 cols_blues <- colorRampPalette(brewer.pal(9,"Blues"))(length(unique(d$adate)))
 d %>%
   ggplot(aes(y = aProf, x = apH)) +
   geom_point(aes(color = factor(adate)), size = 0.2) +
   scale_color_manual(values = cols_blues,
-                    na.value = "gray90",
-                    name = NULL,
-                    guide = "legend",
-                    labels = unique(d$adate),
-                    drop = FALSE) +
-#  scale_x_discrete(position = "top") +
+                     na.value = "gray90",
+                     name = NULL,
+                     guide = "legend",
+                     labels = unique(d$adate),
+                     drop = FALSE) +
+  #  scale_x_discrete(position = "top") +
   scale_y_reverse() +
-    labs(y = "Depth (m)",
+  labs(y = "Depth (m)",
        x = "pH units",
        color = "") +
-    theme(legend.position='top')
+  theme(legend.position='top')
 ```
 
 ```{r pH around 1000 m, echo=FALSE, warning= FALSE,out.width='100%'}
@@ -226,7 +225,7 @@ pH_1000 <- ungroup(data) %>%
   filter(as.integer(Depth) == 1000) %>%
   select(pH_Tinsitu)
 d <- lovapm016a %>%
-    dplyr::mutate(adate = as_date(adatetime)) %>%
+  dplyr::mutate(adate = as_date(adatetime)) %>%
   dplyr::filter(!is.na(apH) & apH < 9 & adate > "2017-12-03" & aProf < 1020 & aProf >980)
 d %>%
   ggplot(aes(y = apH, x = adatetime)) +
@@ -238,7 +237,7 @@ d %>%
   scale_x_datetime(breaks = date_breaks("1 week"), labels = date_format("%d %b")) +
   theme(legend.position="bottom", axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```   
-    
+
 ```{r range, echo=FALSE, warning= FALSE,out.width='100%'}
 d <- lovapm016a %>%
   dplyr::filter(!is.na(apH) & apH < 9) %>%
@@ -278,7 +277,7 @@ ggplot() +
                  aes(y = Depth, x = pH_Tinsitu, xmin = pH_Tinsitu - sd,
                      xmax = pH_Tinsitu + sd, color="Moose114"),
                  height=2, size=0.5) +
-      scale_y_reverse() +
+  scale_y_reverse() +
   #Now Argo
   geom_point(data = ad, 
              aes(y = aProf, x = apH, color="Argo"), size= 1) +
@@ -289,24 +288,24 @@ ggplot() +
 
 ```{r fig Argo MOOSE 120, echo=FALSE, warning= FALSE, fig.width=6,fig.height=8}
 d <- lovapm016b %>%
-    dplyr::mutate(adate = as_date(adatetime)) %>%
+  dplyr::mutate(adate = as_date(adatetime)) %>%
   dplyr::filter(!is.na(apH) & apH < 9 & adate > "2017-12-03")
 cols_blues <- colorRampPalette(brewer.pal(9,"Blues"))(length(unique(d$adate)))
 d %>%
   ggplot(aes(y = aProf, x = apH)) +
   geom_point(aes(color = factor(adate)), size = 0.2) +
   scale_color_manual(values = cols_blues,
-                    na.value = "gray90",
-                    name = NULL,
-                    guide = "legend",
-                    labels = unique(d$adate),
-                    drop = FALSE) +
-#  scale_x_discrete(position = "top") +
+                     na.value = "gray90",
+                     name = NULL,
+                     guide = "legend",
+                     labels = unique(d$adate),
+                     drop = FALSE) +
+  #  scale_x_discrete(position = "top") +
   scale_y_reverse() +
-    labs(y = "Depth (m)",
+  labs(y = "Depth (m)",
        x = "pH units",
        color = "") +
-    theme(legend.position='top')
+  theme(legend.position='top')
 ```
 
 ```{r pH around 1000 m MOOSE 120, echo=FALSE, warning= FALSE,out.width='100%'}
@@ -315,7 +314,7 @@ pH_1000 <- ungroup(data) %>%
   filter(as.integer(Depth) == 1000) %>%
   select(pH_Tinsitu)
 d <- lovapm016b %>%
-    dplyr::mutate(adate = as_date(adatetime)) %>%
+  dplyr::mutate(adate = as_date(adatetime)) %>%
   dplyr::filter(!is.na(apH) & apH < 9 & adate > "2017-12-03" & aProf < 1020 & aProf >980)
 d %>%
   ggplot(aes(y = apH, x = adatetime)) +
@@ -327,7 +326,7 @@ d %>%
   scale_x_datetime(breaks = date_breaks("1 week"), labels = date_format("%d %b")) +
   theme(legend.position="bottom", axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```   
-    
+
 ```{r range MOOSE 120, echo=FALSE, warning= FALSE,out.width='100%'}
 d <- lovapm016b %>%
   dplyr::filter(!is.na(apH) & apH < 9) %>%
@@ -354,7 +353,7 @@ In the figure below, the depth distribution of pHT is shown. The error bars are 
 d <- filter(data, Cruise=="Moose114") # discrete
 ad <- lovapm016b %>% #Argo
   dplyr::mutate(adate = as_date(adatetime)) #%>%
-  #dplyr::filter(!is.na(apH) & apH < 9 & (adate == "2017-12-04" | adate == "2017-12-05"))
+#dplyr::filter(!is.na(apH) & apH < 9 & (adate == "2017-12-04" | adate == "2017-12-05"))
 ggplot() + 
   labs(y = "Depth (m)",
        x = "pH units",
@@ -366,7 +365,7 @@ ggplot() +
                  aes(y = Depth, x = pH_Tinsitu, xmin = pH_Tinsitu - sd,
                      xmax = pH_Tinsitu + sd, color="Moose120"),
                  height=2, size=0.5) +
-      scale_y_reverse() +
+  scale_y_reverse() +
   #Now Argo
   geom_point(data = ad, 
              aes(y = aProf, x = apH, color="Argo"), size= 1) +
