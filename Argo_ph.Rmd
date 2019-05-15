@@ -129,28 +129,31 @@ d$date <- dmy(d$date)
 d$date_analysis <- dmy(d$date_analysis) 
 d$Niskin <- as.numeric(d$Niskin) 
 
-# join lab and field dataframes
-dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
 
 #PROBLEME les profondeurs ne correspondent pas. Utiliser la fonction which.closest comme dans awipev-co2
 
-# # TA interpolation
-# m120 <- d%>%
-#   dplyr::filter(Cruise == "Moose120")
-# atinterp <-approx(m120$Niskin, m120$ta, xout=m120$Niskin, method="linear", rule=2)
-# names(atinterp) <- c("date", "ta")
-# atinterp <- as.data.frame(atinterp)
-# m120$ta <- atinterp$ta
-# 
-# m130 <- d%>%
-#   dplyr::filter(Cruise == "Moose130")
-# atinterp <-approx(m130$Niskin, m130$ta, xout=m130$Niskin, method="linear", rule=2)
-# names(atinterp) <- c("date", "ta")
-# atinterp <- as.data.frame(atinterp)
-# m130$ta <- atinterp$ta
-# 
-# dd <- d%>%
-#   dplyr::mutate(ta = )
+# # TA interpolation for pHinsi()
+# For m120 it has been decided to make the mean of TA at 1000/2000m and to put the same for all depths.
+# For m130, same TA from bottom to 1000 m and interpolation from 1000 to surface (did this with m130 df).
+
+d <- d%>%
+  dplyr::mutate(ta = ifelse(Cruise== "Moose120", d%>%dplyr::filter(Cruise== "Moose120") %>% summarize(ta = mean(ta, na.rm = T)), 
+                             ifelse (Cruise=="Moose130" & Niskin <= 4, 2586.43,ta )))
+
+m130 <- d%>%
+  dplyr::filter(Cruise == "Moose130")
+atinterp <-approx(m130$Niskin, m130$ta, xout=m130$Niskin, method="linear", rule=2)
+names(atinterp) <- c("date", "ta")
+atinterp <- as.data.frame(atinterp)
+
+d <- d%>%
+  dplyr::mutate(ta = ifelse(Cruise== "Moose130", atinterp$ta ,ta ))
+
+
+# join lab and field dataframes
+dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
+
+# pH insitu conversion
 d <- d %>%
   dplyr::mutate(pHspec_Tinsitu = pHinsi(pH=d$pHlab,ALK=d$ta*1e-6, Tinsi=d$Tinsitu, Tlab=d$Tlab, Pinsi= d$Prof/10, S=d$Sal,Pt=0,Sit=0))
 
