@@ -148,7 +148,7 @@ atinterp <- as.data.frame(atinterp)
 
 d <- d%>%
   dplyr::mutate(ta = ifelse(Cruise== "Moose130", atinterp$ta ,ta ))
-
+d$ta <- as.numeric(d$ta) 
 
 # join lab and field dataframes
 dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
