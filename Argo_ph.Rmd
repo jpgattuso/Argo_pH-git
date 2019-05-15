@@ -143,12 +143,12 @@ d <- d%>%
 m130 <- d%>%
   dplyr::filter(Cruise == "Moose130")
 atinterp <-approx(m130$Niskin, m130$ta, xout=m130$Niskin, method="linear", rule=2)
-names(atinterp) <- c("date", "ta")
+names(atinterp) <- c("Niskin", "ta")
 atinterp <- as.data.frame(atinterp)
 
 d <- d%>%
-  dplyr::mutate(ta = ifelse(Cruise== "Moose130", atinterp$ta ,ta ))
-d$ta <- as.numeric(d$ta) 
+  dplyr::mutate(ta = replace(ta, Cruise =="Moose130",atinterp$ta ))
+    d$ta <- as.numeric(d$ta) 
 
 # join lab and field dataframes
 dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
@@ -464,7 +464,7 @@ ggplot() +
 ```
 
 #Acknowledgements
-Thanks are due to Laurent Coppola, Emilie Diamond, Melek Golbol, Edouard Leymarie, Antoine Poteau and Catherine Schmechtig for assistance in the field and in the laboratory.
+Thanks are due to Laurent Coppola, Emilie Diamond, Melek Golbol, Eduardo Soto, Edouard Leymarie, Antoine Poteau and Catherine Schmechtig for assistance in the field and in the laboratory.
 
 #References
 Dickson A. G., Sabine C. L. & Christian J. R., 2007. Guide to best practices for ocean CO2 measurements. PICES Special Publication 3:1-191.
