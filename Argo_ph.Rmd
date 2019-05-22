@@ -163,6 +163,7 @@ data <- d %>%
   dplyr::summarize(Depth = mean(Prof, na.rm = T),
                    Sal = mean(Sal, na.rm = T),
                    ta = mean(ta, na.rm = T),
+                   dic = mean(dic, na.rm = T),
                    Tlab = mean(Tlab, na.rm = T),
                    Tinsitu = mean(Tinsitu, na.rm = T),
                    pHlab = mean(pHlab, na.rm = T),
@@ -172,18 +173,20 @@ data <- d %>%
 data <- data %>%
   dplyr::arrange(Cruise, Depth)
 
-kable(data, align = 'c', col.names = c("Cruise", "Niskin Bottle", "Depth", "Salinity","TA" ,"lab T", "in situ T", "lab pHT", "in situ pHT","sd"), digits = 4)
+kable(data, align = 'c', col.names = c("Cruise", "Niskin Bottle", "Depth", "Salinity","TA", "CT","lab T", "in situ T", "lab pHT", "in situ pHT","sd"), digits = 4)
 ```
 
 ```{r fig pH S T, echo=FALSE, warning= FALSE,out.width='100%'}
 data_long <- data %>%
-  dplyr::select(Cruise, Depth, Sal, Tinsitu, pH_Tinsitu) %>%
+  dplyr::select(Cruise, Depth, Sal, Tinsitu, pH_Tinsitu, ta, dic) %>%
   gather(key="variable", value="value", -Cruise, -Depth)
 
 # To change labels in facet_wrap()
 labels <- c(Sal = "Salinity",
             Tinsitu="T in situ",
-            pH_Tinsitu= "pH in situ")
+            pH_Tinsitu= "pH in situ",
+             ta= "TA",
+             dic= "CT")
 
 ### Plot sal and temp ###
 data_long %>% 
