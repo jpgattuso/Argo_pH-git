@@ -39,7 +39,7 @@ This document presents results of pH measurements obtained during MOOSE cruises:
 - 114 on 4 December 2017. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
 - 120 on 30 June 2018. Samples have been collected at the Dyfamed station by Eduardo Soto and Emilie Diamond.
 - 130 on 2019-04-16. Samples have been collected at the Dyfamed by Eduardo Soto and Melek Golbol.
-- GE on 2019-06-18. Sample have been collected at the vicinity of the Argo float.
+- GE on 2019-06-18. Samples have been collected at the vicinity of the Argo float.
 
 
 **Floats:**
