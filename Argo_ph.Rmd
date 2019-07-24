@@ -63,6 +63,7 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 
 ```{r read data, echo=FALSE, message=FALSE, out.width='100%'}
 floats <- c("lovapm016a", "lovapm016b", "lovapm016c")
+f <- 3
 for (f in 1:length(floats)) {
      float <- floats[f]
      if (file.exists(paste0(path, "./data/", float, ".rds")) == TRUE) {
@@ -380,9 +381,9 @@ ggplot() +
       scale_y_reverse()
 ```
 
-##MOOSE 130
+##MOOSE 130 et MOOSE GE
 
-```{r fig Argo MOOSE 130, echo=FALSE, warning= FALSE, fig.width=6,fig.height=8}
+```{r fig Argo MOOSE 130_GE, echo=FALSE, warning= FALSE, fig.width=6,fig.height=8}
 d <- lovapm016c %>%
     dplyr::mutate(adate = as_date(adatetime)) %>%
   dplyr::filter(!is.na(apH))
@@ -404,7 +405,7 @@ d %>%
     theme(legend.position='top')
 ```
 
-```{r pH around 1000 m MOOSE 130, echo=FALSE, warning= FALSE,out.width='100%'}
+```{r pH around 1000 m MOOSE 130_GE, echo=FALSE, warning= FALSE,out.width='100%'}
 #pHspec_Tinsitu at 1000 m
 pH_1000 <- ungroup(data) %>%
   filter(Cruise == "Moose130" & as.integer(Depth) > 980 & as.integer(Depth) < 1020) %>%
