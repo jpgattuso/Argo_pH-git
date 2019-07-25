@@ -57,7 +57,7 @@ Samples were collected in 500 ml borosilicated glass bottles, poisoned, and stor
 - Total alkalinity was measured on 15 March 2018 for the sample at 1000 m during cruise 114: TA = 2592.73 uEq/kg (n=3, SD=1.41 uEq/kg). Theoretical CRM value is 2217.4 uEq/kg (Batch 171) and measured CRM was 2211.5 uEq/kg.
 - Total alkalinity was measured on 20 July 2018 for samples at 1000 m and 2000 m during cruise 120: TA was respectively 2582.90 uEq/kg (n=2, SD=0.30 uEq/kg) and 2582.16 uEq/kg (n=2, SD=1.27 uEq/kg). Theoretical CRM value is 2226.16 uEq/kg (Batch 145) and measured CRM was 2222.67 uEq/kg (n=2, SD=0.88 uEq/kg).
 - Total alkalinity was measured on 18 April 2019 for samples at 1000 m and surface m during cruise 130: TA was respectively 2586.43 uEq/kg (n=2, SD=0.43 uEq/kg) and 2576.07 uEq/kg (n=2, SD=0.57 uEq/kg). Theoretical CRM value is 2213.59 uEq/kg (Batch 159) and measured CRM was 2216.10 uEq/kg (n=2, SD=0.10 uEq/kg).
-- Total alkalinity was not measured for MOOSE GE. TA from Moose 130 was taken in consideration for 1000 m and surface.
+- Total alkalinity was not measured for MOOSE GE. TA from Moose 130 was taken in consideration for 1000 m and surface and interpolated.
 
 
 #Results
@@ -157,10 +157,9 @@ d <- d%>%
 # join lab and field dataframes
 dat2 <- full_join(dat, d, by = c("aProf" = "Prof"))
 
-# MOOSE GE alkalinity, pute same measured data for 0/1000m from moose130 and interpolate.
+# MOOSE GE alkalinity, used data for 0-1000 m from moose130 and interpolate.
 d <- d%>%
-  dplyr::mutate(ta = ifelse (Cruise=="MooseGE" & Niskin == 21, 2576.07 ,
-                            ifelse ( Cruise=="MooseGE" & Niskin <= 7, 2586.43,ta ))
+  dplyr::mutate(ta = ifelse (Cruise=="MooseGE" & Niskin == 21, 2576.07, ifelse ( Cruise=="MooseGE" & Niskin <= 7, 2586.43,ta ))
   )
 
 mGE <- d%>%
