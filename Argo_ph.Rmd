@@ -424,6 +424,8 @@ d %>%
     theme(legend.position='top')
 ```
 
+In the figure below, the difference is calculated using the Moose 130 spec pH profile before 18 June 2019 and using the Moose GE profile after that date.
+
 ```{r pH around 1000 m MOOSE 130_GE, echo=FALSE, warning= FALSE,out.width='100%'}
 #pHspec_Tinsitu at 1000 m
 pH_1000 <- ungroup(data) %>%
@@ -466,29 +468,28 @@ d %>%
 
 In the figure below, the depth distribution of pHT is shown. The error bars are standard deviations of 3 or 4 replicate measurements performed on the same sampling bottle.
 
-```{r Graph2 MOOSE 130, echo=FALSE, warning= FALSE,out.width='100%'}
+```{r Graph2 MOOSE 130+GE, echo=FALSE, warning= FALSE,out.width='100%'}
 ### Plot pH with error bars ###
-d <- filter(data, Cruise=="Moose130") # discrete
+d <- filter(data, Cruise=="Moose130" | Cruise=="MooseGE") # discrete
 ad <- lovapm016c %>% #Argo
   dplyr::mutate(adate = as_date(adatetime)) #%>%
-  #dplyr::filter(!is.na(apH) & apH < 9 & (adate == "2017-12-04" | adate == "2017-12-05"))
 ggplot() + 
   labs(y = "Depth (m)",
        x = "pH units",
        color = "") +
-  #Now Argo
-  geom_point(data = ad, 
-             aes(y = aProf, x = apH, color="Argo"), size= 1) +
+#Now Argo
+geom_point(data = ad, 
+           aes(y = aProf, x = apH, color="Argo"), size= 1) +
   theme(legend.position='top') +
-#Now spec pH
-  geom_point(data = d, 
-             aes(y = Depth, x = pH_Tinsitu, color="Moose130"), size= 1) +
-  geom_path(data = d, aes(y = Depth, x = pH_Tinsitu, color="Moose130")) +
-  geom_errorbarh(data = d, 
-                 aes(y = Depth, x = pH_Tinsitu, xmin = pH_Tinsitu - sd,
-                     xmax = pH_Tinsitu + sd, color="Moose130"),
-                 height=2, size=0.5) +
-      scale_y_reverse()
+#Now spec pH Moose130+GE
+geom_point(data = d, 
+           aes(y = Depth, x = pH_Tinsitu, color=Cruise), size= 1) +
+geom_path(data = d, aes(y = Depth, x = pH_Tinsitu, color=Cruise)) +
+geom_errorbarh(data = d, 
+               aes(y = Depth, x = pH_Tinsitu, xmin = pH_Tinsitu -
+                     sd, xmax = pH_Tinsitu + sd, color=Cruise),
+               height=2, size=0.5) +
+scale_y_reverse()
 ```
 
 #Acknowledgements
